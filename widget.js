@@ -19,12 +19,12 @@ let SETTINGS = {
 
   // Train rules
   minDonations: 3,           // donations to start the train
-  showScoreboardSec: 20,
+  showScoreboardSec: 15,
 
   // Smoke controls (kept!)
   smokeBaseCount: 3,          // base puffs per emission
   smokeScaleDonations: 3,    // stage every N donations (used with stage logic below)
-  smokeScaleAmount: 30,       // stage every $N
+  smokeScaleAmount: 15,       // stage every $N
   smokeMaxPuffs: 20
 };
 
