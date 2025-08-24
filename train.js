@@ -1,23 +1,29 @@
 /***** Donation Train (StreamElements) – field-driven, single smokestack *****/
 
 let SETTINGS = {
+  // Durations
   trainDurationSec: 240,     // 4 minutes
   cooldownSec: 3600,         // 60 minutes
+
+  // Visuals
   avatarSizePx: 64,
   nameFontPx: 14,
   amountFontPx: 16,
   amountColor: "#FFD700",
   nameColor: "#FFFFFF",
 
+  // Images (overridden by fields)
   locomotiveUrl: "",
   carFrameUrl: "",
   smokeUrl: "",
 
-  minDonations: 3,
+  // Train rules
+  minDonations: 3,           // donations to start the train
   showScoreboardSec: 10,
 
+  // Smoke controls (kept!)
   smokeBaseCount: 3,          // base puffs per emission
-  smokeScaleDonations: 15,    // stage every N donations
+  smokeScaleDonations: 15,    // stage every N donations (used with stage logic below)
   smokeScaleAmount: 15,       // stage every $N
   smokeMaxPuffs: 20
 };
@@ -28,10 +34,13 @@ let inCooldown = false;
 let trainTimer = null;
 let cooldownTimer = null;
 let scoreboardTimer = null;
-const queue = [];
-const totals = new Map();
+
+const queue = [];            // tips queued before train starts (trigger donors)
+const totals = new Map();    // donor -> total during this train
+
 let donationCount = 0;
 let donationSum = 0;
+
 let smokeTimeout = null;
 
 // ====== HELPERS ======
@@ -41,13 +50,19 @@ function money(n) {
 }
 
 function getAvatarFromEvent(evt) {
-  return evt.avatar || evt.profileImage || evt.image || "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_150x150.png";
+  return (
+    evt.avatar ||
+    evt.profileImage ||
+    evt.image ||
+    "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_150x150.png"
+  );
 }
 
 function ensureLocomotiveScaffold() {
   const row = document.getElementById("train-row");
   if (!row) return null;
 
+  // Create or reuse #locomotive at the very start
   let locoContainer = document.getElementById("locomotive");
   if (!locoContainer || !row.contains(locoContainer)) {
     locoContainer = document.createElement("div");
@@ -70,7 +85,9 @@ function ensureLocomotiveScaffold() {
   smoke.id = "smoke-container";
   locoContainer.appendChild(smoke);
 
-  startSmokeLoop(); // start continuous smoke
+  // continuous smoke
+  startSmokeLoop();
+
   return locoContainer;
 }
 
@@ -83,12 +100,15 @@ function processTip(tip) {
   totals.set(tip.name, (totals.get(tip.name) || 0) + tip.amount);
   donationCount++;
   donationSum += tip.amount;
+
   addOrReplaceCar(tip);
   scheduleTrainEnd();
 }
 
 function startTrain() {
   trainActive = true;
+
+  // Reset counters for the active train (trigger donors still processed next)
   donationCount = 0;
   donationSum = 0;
   totals.clear();
@@ -98,6 +118,7 @@ function startTrain() {
 
   ensureLocomotiveScaffold();
 
+  // Flush queued donors who triggered the train
   for (const t of queue) processTip(t);
   queue.length = 0;
 
@@ -111,11 +132,11 @@ function addOrReplaceCar(tip) {
   const loco = document.getElementById("locomotive");
   if (loco && row.firstChild !== loco) row.prepend(loco);
 
-  // Remove existing donor car (if updating amount)
+  // Remove existing donor car (if updating)
   const existing = row.querySelector(`[data-donor="${CSS.escape(tip.name)}"]`);
   if (existing) existing.remove();
 
-  // Create new car
+  // Build car
   const car = document.createElement("div");
   car.className = "train-car";
   car.dataset.donor = tip.name;
@@ -158,25 +179,92 @@ function addOrReplaceCar(tip) {
   name.textContent = tip.name;
   car.appendChild(name);
 
-  // 🔑 Insert car into the correct position based on donor total
+  // Insert sorted by donor total (highest → lowest), always after loco
   const donorTotal = totals.get(tip.name) || 0;
   let inserted = false;
 
   for (let node of row.querySelectorAll(".train-car")) {
     const nodeName = node.dataset.donor;
     const nodeTotal = totals.get(nodeName) || 0;
-
     if (donorTotal > nodeTotal) {
       row.insertBefore(car, node);
       inserted = true;
       break;
     }
   }
-
-  // If not inserted (lowest donor), append at the end
   if (!inserted) row.appendChild(car);
 }
 
+// ====== SMOKE LOOP (continuous; stage-driven) ======
+function startSmokeLoop() {
+  const container = document.getElementById("smoke-container");
+  if (!container) return;
+
+  if (smokeTimeout) clearTimeout(smokeTimeout);
+
+  function spawnPuff() {
+    // Stage logic:
+    // - Donations: hold at stage 0 until minDonations are reached, then step every additional minDonations
+    // - Amount: step every smokeScaleAmount dollars
+    const stageDonThreshold = Math.max(1, Number(SETTINGS.minDonations) || 1);
+    const stageAmtThreshold = Math.max(1, Number(SETTINGS.smokeScaleAmount) || 1);
+
+    const stageDon = Math.max(0, Math.floor((donationCount - stageDonThreshold) / stageDonThreshold));
+    const stageAmt = Math.max(0, Math.floor((donationSum  - stageAmtThreshold) / stageAmtThreshold));
+    const stage = Math.max(stageDon, stageAmt, 0);
+
+    // Count doubles per stage (capped)
+    const count = Math.min(SETTINGS.smokeBaseCount * Math.pow(2, stage), SETTINGS.smokeMaxPuffs);
+
+    // Angle: start ~85° (mostly up), decrease by 10° per stage, floor at 10°
+    const angleStart = 85;
+    const angleStep = 10;
+    const minAngle = 10;
+    const angle = Math.max(angleStart - stage * angleStep, minAngle);
+
+    // Opacity ramp: stage 0 → 0.5, stage 1 → 0.75, stage 2 → 1.0, then slightly down to look thicker
+    let opacity;
+    if (stage <= 2) opacity = 0.5 + stage * 0.25;
+    else opacity = Math.max(1.0 - (stage - 2) * 0.1, 0.2);
+
+    // Speed & travel distance
+    const speedMultiplier = 1 + stage * 0.15;
+    const maxDistY = 60 + stage * 10; // upward travel
+    // derive horizontal distance from angle (angle measured from vertical)
+    const maxDistX = Math.tan((90 - angle) * Math.PI / 180) * maxDistY;
+
+    for (let i = 0; i < count; i++) {
+      const puff = document.createElement("div");
+      puff.className = "smoke-puff";
+      if (SETTINGS.smokeUrl) puff.style.backgroundImage = `url("${SETTINGS.smokeUrl}")`;
+      puff.style.left = (5 + Math.random() * 10) + "px";
+      puff.style.opacity = opacity;
+
+      const duration = (3 + Math.random()) / speedMultiplier;
+      // slight ±2° randomness
+      const angleJitter = angle + (Math.random() * 4 - 2);
+      const distXRand = Math.tan((90 - angleJitter) * Math.PI / 180) * maxDistY;
+
+      puff.animate(
+        [
+          { transform: `translate(0,0) scale(0.6)`, opacity: opacity },
+          { transform: `translate(${distXRand}px, ${-maxDistY}px) scale(1.4)`, opacity: 0 }
+        ],
+        { duration: duration * 1000, easing: "linear" }
+      );
+
+      container.appendChild(puff);
+      setTimeout(() => puff.remove(), duration * 1000);
+    }
+
+    // Interval speeds up by stage (min 200ms)
+    const baseInterval = 2000; // 1 puff every 2s at stage 0
+    const interval = Math.max(200, baseInterval / (1 + stage * 0.5));
+    smokeTimeout = setTimeout(spawnPuff, interval);
+  }
+
+  spawnPuff();
+}
 
 // ====== SCOREBOARD ======
 function buildScoreboardHtml() {
@@ -184,6 +272,7 @@ function buildScoreboardHtml() {
     .sort((a, b) => b[1] - a[1])
     .map(([name, total]) => `<div class="entry">${name} — ${money(total)}</div>`)
     .join("");
+
   return `<h2>Top Donors This Train</h2>${entries || "<div class='entry'>No donors</div>"}`;
 }
 
@@ -210,20 +299,27 @@ function endTrain() {
 window.addEventListener("onWidgetLoad", (obj) => {
   const fd = (obj && obj.detail && obj.detail.fieldData) || {};
 
+  // Images (fields → settings). Support numeric-index fallbacks too.
   if (fd.locomotiveUrl) SETTINGS.locomotiveUrl = String(fd.locomotiveUrl);
   if (fd.carUrl)        SETTINGS.carFrameUrl   = String(fd.carUrl);
   if (fd.smokeUrl)      SETTINGS.smokeUrl      = String(fd.smokeUrl);
+
   if (!SETTINGS.locomotiveUrl && typeof fd["0"] === "string") SETTINGS.locomotiveUrl = fd["0"];
   if (!SETTINGS.carFrameUrl   && typeof fd["1"] === "string") SETTINGS.carFrameUrl   = fd["1"];
   if (!SETTINGS.smokeUrl      && typeof fd["2"] === "string") SETTINGS.smokeUrl      = fd["2"];
+  if (!SETTINGS.carFrameUrl   && typeof fd["9"] === "string") SETTINGS.carFrameUrl   = fd["9"]; // extra fallback seen in your DATA
 
+  // Train rules
   if (fd.minDonations != null) SETTINGS.minDonations = Number(fd.minDonations);
-  if (fd.cooldownMinutes != null) SETTINGS.cooldownSec = Number(fd.cooldownMinutes) * 60;
-  else if (fd.cooldownDuration != null) SETTINGS.cooldownSec = Number(fd.cooldownDuration) * 60;
+
+  // Minutes → seconds (with alt fallbacks from your DATA)
+  if (fd.cooldownMinutes != null)       SETTINGS.cooldownSec      = Number(fd.cooldownMinutes) * 60;
+  else if (fd.cooldownDuration != null) SETTINGS.cooldownSec      = Number(fd.cooldownDuration) * 60;
 
   if (fd.trainDurationMinutes != null)  SETTINGS.trainDurationSec = Number(fd.trainDurationMinutes) * 60;
   else if (fd.trainDuration != null)    SETTINGS.trainDurationSec = Number(fd.trainDuration) * 60;
 
+  // Sizes / fonts
   if (fd.avatarSize != null) SETTINGS.avatarSizePx = Number(fd.avatarSize);
   else if (fd.carSize != null) SETTINGS.avatarSizePx = Number(fd.carSize);
 
@@ -232,6 +328,7 @@ window.addEventListener("onWidgetLoad", (obj) => {
     SETTINGS.amountFontPx = Number(fd.fontSize);
   }
 
+  // Smoke scaling: single threshold can control both donations & amount stages
   if (fd.smokeBaseAmount != null) SETTINGS.smokeBaseCount = Number(fd.smokeBaseAmount);
   if (fd.smokeDonationThreshold != null) {
     const thr = Number(fd.smokeDonationThreshold);
@@ -261,6 +358,7 @@ window.addEventListener("onEventReceived", (obj) => {
   };
 
   if (!trainActive) {
+    // queue trigger donors until threshold is met
     queue.push(tip);
     if (queue.length >= SETTINGS.minDonations) startTrain();
   } else {
