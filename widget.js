@@ -19,12 +19,12 @@ let SETTINGS = {
 
   // Train rules
   minDonations: 3,           // donations to start the train
-  showScoreboardSec: 10,
+  showScoreboardSec: 20,
 
   // Smoke controls (kept!)
   smokeBaseCount: 3,          // base puffs per emission
-  smokeScaleDonations: 15,    // stage every N donations (used with stage logic below)
-  smokeScaleAmount: 15,       // stage every $N
+  smokeScaleDonations: 3,    // stage every N donations (used with stage logic below)
+  smokeScaleAmount: 30,       // stage every $N
   smokeMaxPuffs: 20
 };
 
@@ -299,38 +299,25 @@ function endTrain() {
 window.addEventListener("onWidgetLoad", (obj) => {
   const fd = (obj && obj.detail && obj.detail.fieldData) || {};
 
-  // Images (fields → settings). Support numeric-index fallbacks too.
-  if (fd.locomotiveUrl) SETTINGS.locomotiveUrl = String(fd.locomotiveUrl);
-  if (fd.carUrl)        SETTINGS.carFrameUrl   = String(fd.carUrl);
-  if (fd.smokeUrl)      SETTINGS.smokeUrl      = String(fd.smokeUrl);
+  // ----- Images (named first, numeric fallback) -----
+  SETTINGS.locomotiveUrl = fd.locomotiveUrl || fd["0"] || SETTINGS.locomotiveUrl;
+  SETTINGS.carFrameUrl   = fd.carUrl        || fd["1"] || SETTINGS.carFrameUrl;
+  SETTINGS.smokeUrl      = fd.smokeUrl      || fd["2"] || SETTINGS.smokeUrl;
 
-  if (!SETTINGS.locomotiveUrl && typeof fd["0"] === "string") SETTINGS.locomotiveUrl = fd["0"];
-  if (!SETTINGS.carFrameUrl   && typeof fd["1"] === "string") SETTINGS.carFrameUrl   = fd["1"];
-  if (!SETTINGS.smokeUrl      && typeof fd["2"] === "string") SETTINGS.smokeUrl      = fd["2"];
+  // ----- Train rules -----
+  SETTINGS.minDonations = Number(fd.minDonations ?? fd["3"] ?? SETTINGS.minDonations);
+  SETTINGS.cooldownSec  = Number(fd.cooldownMinutes ?? fd.cooldownDuration ?? fd["4"] ?? (SETTINGS.cooldownSec / 60)) * 60;
+  SETTINGS.trainDurationSec = Number(fd.trainDurationMinutes ?? fd.trainDuration ?? fd["5"] ?? (SETTINGS.trainDurationSec / 60)) * 60;
 
-  // Train rules
-  if (fd.minDonations != null) SETTINGS.minDonations = Number(fd.minDonations);
+  // ----- Avatar / font sizes -----
+  SETTINGS.avatarSizePx = Number(fd.avatarSize ?? fd.carSize ?? fd["6"] ?? SETTINGS.avatarSizePx);
+  SETTINGS.nameFontPx   = Number(fd.fontSize ?? fd["7"] ?? SETTINGS.nameFontPx);
+  SETTINGS.amountFontPx = Number(fd.fontSize ?? fd["8"] ?? SETTINGS.amountFontPx);
 
-  // Minutes → seconds (with alt fallbacks from your DATA)
-  if (fd.cooldownMinutes != null)       SETTINGS.cooldownSec      = Number(fd.cooldownMinutes) * 60;
-  else if (fd.cooldownDuration != null) SETTINGS.cooldownSec      = Number(fd.cooldownDuration) * 60;
-
-  if (fd.trainDurationMinutes != null)  SETTINGS.trainDurationSec = Number(fd.trainDurationMinutes) * 60;
-  else if (fd.trainDuration != null)    SETTINGS.trainDurationSec = Number(fd.trainDuration) * 60;
-
-  // Sizes / fonts
-  if (fd.avatarSize != null) SETTINGS.avatarSizePx = Number(fd.avatarSize);
-  else if (fd.carSize != null) SETTINGS.avatarSizePx = Number(fd.carSize);
-
-  if (fd.fontSize != null) {
-    SETTINGS.nameFontPx = Number(fd.fontSize);
-    SETTINGS.amountFontPx = Number(fd.fontSize);
-  }
-
-  // Smoke scaling: single threshold can control both donations & amount stages
-  if (fd.smokeBaseAmount != null) SETTINGS.smokeBaseCount = Number(fd.smokeBaseAmount);
+  // ----- Smoke scaling -----
+  if (fd.smokeBaseAmount != null) SETTINGS.smokeBaseCount = Number(fd.smokeBaseAmount ?? fd["7"]);
   if (fd.smokeDonationThreshold != null) {
-    const thr = Number(fd.smokeDonationThreshold);
+    const thr = Number(fd.smokeDonationThreshold ?? fd["8"]);
     SETTINGS.smokeScaleDonations = thr;
     SETTINGS.smokeScaleAmount = thr;
   }
