@@ -307,7 +307,6 @@ window.addEventListener("onWidgetLoad", (obj) => {
   if (!SETTINGS.locomotiveUrl && typeof fd["0"] === "string") SETTINGS.locomotiveUrl = fd["0"];
   if (!SETTINGS.carFrameUrl   && typeof fd["1"] === "string") SETTINGS.carFrameUrl   = fd["1"];
   if (!SETTINGS.smokeUrl      && typeof fd["2"] === "string") SETTINGS.smokeUrl      = fd["2"];
-  if (!SETTINGS.carFrameUrl   && typeof fd["9"] === "string") SETTINGS.carFrameUrl   = fd["9"]; // extra fallback seen in your DATA
 
   // Train rules
   if (fd.minDonations != null) SETTINGS.minDonations = Number(fd.minDonations);
