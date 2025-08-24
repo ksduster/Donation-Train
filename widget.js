@@ -13,9 +13,9 @@ let SETTINGS = {
   nameColor: "#FFFFFF",
 
   // Images (overridden by fields)
-  locomotiveUrl: "",
-  carFrameUrl: "",
-  smokeUrl: "",
+  locomotiveUrl: "https://cdn.streamelements.com/uploads/01k2tphph1dhpsyypwfw9kmh0n.png",
+  carFrameUrl: "https://cdn.streamelements.com/uploads/01k2tphgfdrwtvbwt0n8wvz3b4.png",
+  smokeUrl: "https://cdn.streamelements.com/uploads/01k2v60z0k2zzg27jgkts3wkfx.png",
 
   // Train rules
   minDonations: 3,           // donations to start the train
