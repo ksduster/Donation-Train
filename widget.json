@@ -39,7 +39,7 @@
     "name": "avatarSize",
     "label": "Avatar Size (px)",
     "type": "number",
-    "value": ""
+    "value": "64"
   },
   {
     "name": "smokeBaseAmount",
@@ -52,5 +52,17 @@
     "label": "Smoke Threshold ($ or Donations per stage)",
     "type": "number",
     "value": ""
+  },
+  {
+    "name": "nameFontPx",
+    "label": "Donor Name Font Size",
+    "type": "number",
+    "value": 14
+  },
+  {
+    "name": "amountFontPx",
+    "label": "Donation Amount Font Size",
+    "type": "number",
+    "value": 16
   }
 ]
