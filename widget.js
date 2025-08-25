@@ -62,7 +62,6 @@ function ensureLocomotiveScaffold() {
   const row = document.getElementById("train-row");
   if (!row) return null;
 
-  // Create or reuse #locomotive at the very start
   let locoContainer = document.getElementById("locomotive");
   if (!locoContainer || !row.contains(locoContainer)) {
     locoContainer = document.createElement("div");
@@ -74,20 +73,29 @@ function ensureLocomotiveScaffold() {
   locoContainer.style.display = "inline-block";
   locoContainer.innerHTML = "";
 
+  const avatar = SETTINGS.avatarSizePx;
+
   const locoImg = document.createElement("img");
   locoImg.id = "locomotive-img";
   locoImg.className = "locomotive";
   locoImg.src = SETTINGS.locomotiveUrl || "";
-  locoImg.style.height = Math.round(SETTINGS.avatarSizePx * 1.8) + "px";
+  locoImg.style.height = Math.round(avatar * 1.8) + "px";
   locoContainer.appendChild(locoImg);
 
+  // --- Smoke container dynamically positioned ---
   const smoke = document.createElement("div");
   smoke.id = "smoke-container";
+  smoke.style.position = "absolute";
+  smoke.style.bottom = `${avatar * 1.5}px`;       // from bottom of loco
+  smoke.style.left = `${avatar * 0.5}px`;        // horizontal offset for stack
+  smoke.style.width = `${avatar * 1.2}px`;       // width of stack area
+  smoke.style.height = `${avatar * 2.5}px`;      // height for puffs to move
+  smoke.style.pointerEvents = "none";
+  smoke.style.overflow = "visible";
+
   locoContainer.appendChild(smoke);
 
-  // continuous smoke
   startSmokeLoop();
-
   return locoContainer;
 }
 
@@ -203,45 +211,44 @@ function startSmokeLoop() {
   if (smokeTimeout) clearTimeout(smokeTimeout);
 
   function spawnPuff() {
-    // Stage logic:
-    // - Donations: hold at stage 0 until minDonations are reached, then step every additional minDonations
-    // - Amount: step every smokeScaleAmount dollars
     const stageDonThreshold = Math.max(1, Number(SETTINGS.minDonations) || 1);
     const stageAmtThreshold = Math.max(1, Number(SETTINGS.smokeScaleAmount) || 1);
 
     const stageDon = Math.max(0, Math.floor((donationCount - stageDonThreshold) / stageDonThreshold));
-    const stageAmt = Math.max(0, Math.floor((donationSum  - stageAmtThreshold) / stageAmtThreshold));
+    const stageAmt = Math.max(0, Math.floor((donationSum - stageAmtThreshold) / stageAmtThreshold));
     const stage = Math.max(stageDon, stageAmt, 0);
 
-    // Count doubles per stage (capped)
     const count = Math.min(SETTINGS.smokeBaseCount * Math.pow(2, stage), SETTINGS.smokeMaxPuffs);
 
-    // Angle: start ~85° (mostly up), decrease by 10° per stage, floor at 10°
     const angleStart = 85;
     const angleStep = 10;
     const minAngle = 10;
     const angle = Math.max(angleStart - stage * angleStep, minAngle);
 
-    // Opacity ramp: stage 0 → 0.5, stage 1 → 0.75, stage 2 → 1.0, then slightly down to look thicker
     let opacity;
     if (stage <= 2) opacity = 0.5 + stage * 0.25;
     else opacity = Math.max(1.0 - (stage - 2) * 0.1, 0.2);
 
-    // Speed & travel distance
     const speedMultiplier = 1 + stage * 0.15;
-    const maxDistY = 60 + stage * 10; // upward travel
-    // derive horizontal distance from angle (angle measured from vertical)
-    const maxDistX = Math.tan((90 - angle) * Math.PI / 180) * maxDistY;
+    const maxDistY = 60 + stage * 10;
+
+    const avatar = SETTINGS.avatarSizePx;
+    const basePuffSize = avatar * 0.5;  // scale puff size to avatar
 
     for (let i = 0; i < count; i++) {
       const puff = document.createElement("div");
       puff.className = "smoke-puff";
-      if (SETTINGS.smokeUrl) puff.style.backgroundImage = `url("${SETTINGS.smokeUrl}")`;
-      puff.style.left = (5 + Math.random() * 10) + "px";
+      puff.style.width = `${basePuffSize}px`;
+      puff.style.height = `${basePuffSize}px`;
+      puff.style.backgroundImage = SETTINGS.smokeUrl ? `url("${SETTINGS.smokeUrl}")` : "";
       puff.style.opacity = opacity;
+      puff.style.position = "absolute";
+
+      // random left inside stack
+      puff.style.left = `${Math.random() * (avatar * 0.7)}px`;
 
       const duration = (3 + Math.random()) / speedMultiplier;
-      // slight ±2° randomness
+
       const angleJitter = angle + (Math.random() * 4 - 2);
       const distXRand = Math.tan((90 - angleJitter) * Math.PI / 180) * maxDistY;
 
@@ -257,14 +264,14 @@ function startSmokeLoop() {
       setTimeout(() => puff.remove(), duration * 1000);
     }
 
-    // Interval speeds up by stage (min 200ms)
-    const baseInterval = 2000; // 1 puff every 2s at stage 0
+    const baseInterval = 2000;
     const interval = Math.max(200, baseInterval / (1 + stage * 0.5));
     smokeTimeout = setTimeout(spawnPuff, interval);
   }
 
   spawnPuff();
 }
+
 
 // ====== SCOREBOARD ======
 function buildScoreboardHtml() {

@@ -105,17 +105,14 @@ body { margin: 0; background: transparent; font-family: Inter, Arial, sans-serif
 }
 
 .smoke-puff {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 30px;
-  height: 30px;
-  background: url("https://cdn.streamelements.com/uploads/01k2v60z0k2zzg27jgkts3wkfx.png") no-repeat center center;
   background-size: contain;
-  opacity: 0.8;
-  animation: puff linear forwards;
-  animation-duration: var(--puff-duration, 4s);
+  background-repeat: no-repeat;
+  background-position: center;
+  pointer-events: none;
+  position: absolute;
+  will-change: transform, opacity;
 }
+
 
 @keyframes puff {
   0% {
