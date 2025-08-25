@@ -66,7 +66,7 @@ The **Donation Train widget** provides a dynamic, visual way to reward and recog
     * On the left, select ADD WIDGET
     * From the menu that shows, go to STATIC / CUSTOM > and select Custom Widget
 
-6. **Open Editor**
+6. **HTML**
         * Open the editor at the top left corner
         * Go to your notepad that has **widget.html**
         * Select all text in the file
@@ -75,7 +75,7 @@ The **Donation Train widget** provides a dynamic, visual way to reward and recog
         * In the HTML tab, DELETE everything there.
         * Right click inside the editor text field and select paste, DO NOT CLOSE THIS WINDOW
     
-    **CSS**
+7.  **CSS**
         * Go to your notepad that has **widget.CSS**
         * Select all text in the file
         * Copy the text to the clipboard
@@ -83,7 +83,7 @@ The **Donation Train widget** provides a dynamic, visual way to reward and recog
         * In the CSS tab, DELETE everything there
         * Right click inside the editor text field and select paste, DO NOT CLOSE THIS WINDOW
         
-    **JS**
+8.  **JS**
         * Go to your notepad that has **widget.JS**
         * Select all text in the file
         * Copy the text to the clipboard
@@ -91,7 +91,7 @@ The **Donation Train widget** provides a dynamic, visual way to reward and recog
         * In the JS tab, DELETE everything there
         * Right click inside the editor text field and select paste, DO NOT CLOSE THIS WINDOW
     
-    **FIELDS**
+9.  **FIELDS**
         * Go to your notepad that has **widget.JSON**
         * Select all text in the file
         * Copy the text to the clipboard
@@ -99,10 +99,10 @@ The **Donation Train widget** provides a dynamic, visual way to reward and recog
         * In the FIELDS tab, DELETE everything there
         * Right click inside the editor text field and select paste, Select DONE
         
-    **SAVE**
+10.  **SAVE**
         * Select SAVE at the top right corner
         
-7. **Configure your settings**
+11. **Configure your settings**
     * Set your own image URL's for your locomotive, train cars, or smoke. There are hard coded defaults it will use if left blank.
     * All fields have hard coded defaults, so this will work out of the box after adding to your overlay.
     Minimum Donations to start the train: 3
