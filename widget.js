@@ -86,9 +86,9 @@ function ensureLocomotiveScaffold() {
   const smoke = document.createElement("div");
   smoke.id = "smoke-container";
   smoke.style.position = "absolute";
-  smoke.style.bottom = `${avatar * 1.5}px`;       // from bottom of loco
-  smoke.style.left = `${avatar * 0.5}px`;        // horizontal offset for stack
-  smoke.style.width = `${avatar * 1.2}px`;       // width of stack area
+  smoke.style.bottom = `${avatar * -0.3}px`;       // from bottom of loco
+  smoke.style.left = `${avatar * 0.25}px`;        // horizontal offset for stack
+  smoke.style.width = `${avatar * 1.0}px`;       // width of stack area
   smoke.style.height = `${avatar * 2.5}px`;      // height for puffs to move
   smoke.style.pointerEvents = "none";
   smoke.style.overflow = "visible";

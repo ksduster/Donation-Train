@@ -96,10 +96,10 @@ body { margin: 0; background: transparent; font-family: Inter, Arial, sans-serif
 /* Smoke container above locomotive */
 #smoke-container {
   position: absolute;
-  bottom: 90%;
-  left: 35px;
-  width: 75px; /* only smokestack width */
-  height: 150px;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   overflow: visible;
 }
