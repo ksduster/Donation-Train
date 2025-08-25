@@ -105,13 +105,13 @@ The **Donation Train widget** provides a dynamic, visual way to reward and recog
 11. **Configure your settings**
     * Set your own image URL's for your locomotive, train cars, or smoke. There are hard coded defaults it will use if left blank.
     * All fields have hard coded defaults, so this will work out of the box after adding to your overlay.
-    Minimum Donations to start the train: 3
-    Cooldown: 60 minutes
-    Train Duration: 4 minutes
-    Smoke Base amount (per stage) 15 (increases smoke every $x donations)
-    Smoke threshold: 3 (increases smoke every x donations)
-    Donor name font size 14
-    Donation amount font size 16
+    * Minimum Donations to start the train: 3
+    * Cooldown: 60 minutes
+    * Train Duration: 4 minutes
+    * Smoke Base amount (per stage) 15 (increases smoke every $x donations)
+    * Smoke threshold: 3 (increases smoke every x donations)
+    * Donor name font size 14
+    * Donation amount font size 16
     
 
 ### Support 
