@@ -117,8 +117,6 @@ The **Donation Train widget** provides a dynamic, visual way to reward and recog
 
 ### Support 
 
-    **GitHub**
-        * https://github.com/ksduster/Donation-Train/issues/new
-    **Discord**
-        * https://discord.gg/E6JdP5uXQv
+    **GitHub** https://github.com/ksduster/Donation-Train/issues/new
+    **Discord** https://discord.gg/E6JdP5uXQv
             ** Support channel for issues with code, or help installing **
