@@ -311,8 +311,8 @@ window.addEventListener("onWidgetLoad", (obj) => {
 
   // ----- Avatar / font sizes -----
   SETTINGS.avatarSizePx = Number(fd.avatarSize ?? fd.carSize ?? fd["6"] ?? SETTINGS.avatarSizePx);
-  SETTINGS.nameFontPx   = Number(fd.fontSize ?? fd["7"] ?? SETTINGS.nameFontPx);
-  SETTINGS.amountFontPx = Number(fd.fontSize ?? fd["8"] ?? SETTINGS.amountFontPx);
+  SETTINGS.nameFontPx   = Number(fd.nameFontPx ?? fd["9"] ?? SETTINGS.nameFontPx);
+  SETTINGS.amountFontPx = Number(fd.amountFontPx ?? fd["10"] ?? SETTINGS.amountFontPx);
 
   // ----- Smoke scaling -----
   if (fd.smokeBaseAmount != null) SETTINGS.smokeBaseCount = Number(fd.smokeBaseAmount ?? fd["7"]);
