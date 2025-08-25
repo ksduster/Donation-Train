@@ -67,7 +67,6 @@ The **Donation Train widget** provides a dynamic, visual way to reward and recog
     * From the menu that shows, go to STATIC / CUSTOM > and select Custom Widget
 
 6. **Open Editor**
-    **HTML**
         * Open the editor at the top left corner
         * Go to your notepad that has **widget.html**
         * Select all text in the file
